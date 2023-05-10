@@ -1,0 +1,26 @@
+load("@prelude//toolchains:genrule.bzl", "system_genrule_toolchain")
+load("@prelude//toolchains:python.bzl", "system_python_bootstrap_toolchain", "system_python_toolchain")
+load(":go.bzl", "remote_go_toolchain")
+
+system_genrule_toolchain(
+    name = "genrule",
+    visibility = ["PUBLIC"],
+)
+
+# TODO: remove dependency on python toolchains
+# by writing our own go_bootstrap_binary
+system_python_toolchain(
+    name = "python",
+    visibility = ["PUBLIC"],
+)
+
+system_python_bootstrap_toolchain(
+    name = "python_bootstrap",
+    visibility = ["PUBLIC"],
+)
+
+remote_go_toolchain(
+    name = "go",
+    version = "1.20.4",
+    visibility = ["PUBLIC"],
+)
