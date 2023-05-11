@@ -1,0 +1,10 @@
+load("//private/rules:binary.bzl", "go_bootstrap_binary")
+
+# TODO(sluongng): this is only a test to prove that building with
+# the current toolchain works.
+# We should remove this once we have the builder binary in rules_go to build.
+go_bootstrap_binary(
+    name = "testmaingen",
+    srcs = ["testmaingen.go"],
+    visibility = ["PUBLIC"],
+)
