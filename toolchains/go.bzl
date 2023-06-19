@@ -1,3 +1,4 @@
+load("@prelude//http_archive/exec_deps.bzl", "HttpArchiveExecDeps")
 load("@prelude//cxx:cxx_toolchain_types.bzl", "CxxToolchainInfo")
 load("@prelude//go:toolchain.bzl", "GoToolchainInfo")
 load("@prelude//os_lookup:defs.bzl", "OsLookup")
@@ -44,18 +45,23 @@ def _system_go_toolchain_impl(ctx: "context") -> ["provider"]:
             env_go_arch = go_arch,
             env_go_os = go_os,
             env_go_root = go_root,
+            env_go_arm = None,
             # Go tools
-            assembler = get_go_tool("asm"),
-            cgo = get_go_tool("cgo"),
             compiler = get_go_tool("compile"),
-            cover = get_go_tool("cover"),
+            compiler_flags_shared = "",
+            compiler_flags_static = "",
             linker = get_go_tool("link"),
+            linker_flags_shared = "",
+            linker_flags_static = "",
+            assembler = get_go_tool("asm"),
+            cover = get_go_tool("cover"),
             packer = get_go_tool("pack"),
             # Helpers
             compile_wrapper = ctx.attrs.compile_wrapper,
             cover_srcs = ctx.attrs.cover_srcs,
             filter_srcs = ctx.attrs.filter_srcs,
             # CGO
+            cgo = get_go_tool("cgo"),
             cgo_wrapper = ctx.attrs.cgo_wrapper,
             cxx_toolchain_for_linking = ctx.attrs.cxx_toolchain,
             external_linker_flags = ctx.attrs.external_linker_flags,
@@ -122,18 +128,23 @@ def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
                 env_go_arch = go_arch,
                 env_go_os = go_os,
                 env_go_root = go_root,
+                env_go_arm = None,
                 # Go tools
-                assembler = get_go_tool("asm"),
-                cgo = get_go_tool("cgo"),
                 compiler = get_go_tool("compile"),
-                cover = get_go_tool("cover"),
+                compiler_flags_shared = "",
+                compiler_flags_static = "",
                 linker = get_go_tool("link"),
+                linker_flags_shared = "",
+                linker_flags_static = "",
+                assembler = get_go_tool("asm"),
+                cover = get_go_tool("cover"),
                 packer = get_go_tool("pack"),
                 # Helpers
                 compile_wrapper = ctx.attrs.compile_wrapper,
                 cover_srcs = ctx.attrs.cover_srcs,
                 filter_srcs = ctx.attrs.filter_srcs,
                 # CGO
+                cgo = get_go_tool("cgo"),
                 cgo_wrapper = ctx.attrs.cgo_wrapper,
                 cxx_toolchain_for_linking = ctx.attrs.cxx_toolchain,
                 external_linker_flags = ctx.attrs.external_linker_flags,
@@ -143,6 +154,7 @@ def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
         ]
 
     return ctx.actions.anon_target(native.http_archive, {
+        "exec_deps": ctx.attrs._http_archive_exec_deps,
         "urls": ["https://dl.google.com/go/{}".format(sdk_file_metadata["filename"])],
         "sha256": sdk_file_metadata["sha256"],
         "sub_targets": ["bin/go"] + [
@@ -157,11 +169,6 @@ def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
             ]
         ],
         "strip_prefix": "go",
-        # Anon target hacks
-        # See https://github.com/facebook/buck2/commit/76e9a01ade4b91a95be961e75dad287bc99f81c4
-        "_create_exclusion_list": [],
-        "_exec_os_type": [],
-        "_override_exec_platform_name": ctx.attrs._exec_os_type[OsLookup].platform,
     }).map(handle_toolchain_archive)
 
 remote_go_toolchain = rule(
@@ -180,7 +187,7 @@ remote_go_toolchain = rule(
         "compile_wrapper": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:compile_wrapper")),
         "cover_srcs": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:cover_srcs")),
         "filter_srcs": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:filter_srcs")),
-        "_exec_os_type": attrs.default_only(attrs.exec_dep(default = "prelude//os_lookup/targets:os_lookup")),
+        "_http_archive_exec_deps": attrs.default_only(attrs.dep(providers = [HttpArchiveExecDeps], default = "prelude//http_archive/tools:exec_deps")),
     },
     is_toolchain_rule = True,
 )
