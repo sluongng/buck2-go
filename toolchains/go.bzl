@@ -27,11 +27,16 @@ def _go_tool_path(go_os: "string", go_arch: "string", go_tool: "string") -> "str
     return "pkg/tool/{}_{}/{}".format(go_os, go_arch, go_tool)
 
 def _system_go_toolchain_impl(ctx: "context") -> ["provider"]:
-    go_root = ctx.attrs.go_root
-    go_binary = go_root + "/bin/go"
-
+    # TODO(sluongng): This should be exec platform, not host platform
     go_arch = _get_go_arch()
     go_os = _get_go_os()
+
+    go_root = ctx.attrs.go_root
+
+    go_binary = go_root + "/bin/go"
+    srcs = go_root + "/src"
+    headers = go_root + "/pkg/include"
+    tools = go_root + "/pkg/tool"
 
     get_go_tool = lambda go_tool: "{}/{}".format(go_root, _go_tool_path(go_os, go_arch, go_tool))
     runner = cmd_args([go_binary])
@@ -41,6 +46,9 @@ def _system_go_toolchain_impl(ctx: "context") -> ["provider"]:
         GoToolchainInfo(
             # Go binary
             go = go_binary,
+            sdk_srcs = srcs,
+            sdk_headers = headers,
+            sdk_tools = tools,
             # Go env
             env_go_arch = go_arch,
             env_go_os = go_os,
@@ -91,6 +99,7 @@ system_go_toolchain = rule(
 )
 
 def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
+    # TODO(sluongng): This should be exec platform, not host platform
     go_arch = _get_go_arch()
     go_os = _get_go_os()
 
@@ -116,7 +125,12 @@ def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
         archive_sub_targets = providers[DefaultInfo].sub_targets
 
         go_binary = archive_sub_targets["bin/go"][DefaultInfo].default_outputs[0]
+        tools = archive_sub_targets["pkg/tool"][DefaultInfo].default_outputs[0]
+        srcs = archive_sub_targets["src"][DefaultInfo].default_outputs[0]
+        headers = archive_sub_targets["pkg/include"][DefaultInfo].default_outputs[0]
+
         get_go_tool = lambda go_tool: archive_sub_targets[_go_tool_path(go_os, go_arch, go_tool)][DefaultInfo].default_outputs[0]
+
         runner = cmd_args([go_binary])
         return [
             DefaultInfo(),
@@ -124,6 +138,9 @@ def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
             GoToolchainInfo(
                 # Go binary
                 go = go_binary,
+                sdk_srcs = srcs,
+                sdk_headers = headers,
+                sdk_tools = tools,
                 # Go env
                 env_go_arch = go_arch,
                 env_go_os = go_os,
@@ -157,7 +174,7 @@ def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
         "exec_deps": ctx.attrs._http_archive_exec_deps,
         "urls": ["https://dl.google.com/go/{}".format(sdk_file_metadata["filename"])],
         "sha256": sdk_file_metadata["sha256"],
-        "sub_targets": ["bin/go"] + [
+        "sub_targets": [
             _go_tool_path(go_os, go_arch, go_tool)
             for go_tool in [
                 "asm",
@@ -167,7 +184,7 @@ def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
                 "link",
                 "pack",
             ]
-        ],
+        ] + ["bin/go", "pkg/include", "pkg/tool", "src"],
         "strip_prefix": "go",
     }).map(handle_toolchain_archive)
 
