@@ -1,3 +1,4 @@
 [submodule "prelude"]
 	path = prelude
-	url = https://github.com/facebook/buck2-prelude.git
+	# url = https://github.com/facebook/buck2-prelude.git
+	url = https://github.com/sluongng/buck2-prelude.git
