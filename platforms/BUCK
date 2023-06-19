@@ -1,0 +1,4 @@
+load(":re-platform.bzl", "re_platform")
+
+re_platform(name = "re_platform")
+
