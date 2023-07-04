@@ -8,3 +8,36 @@ go_bootstrap_binary(
     srcs = ["testmaingen.go"],
     visibility = ["PUBLIC"],
 )
+
+go_bootstrap_binary(
+    name = "builder",
+    srcs = [
+        "@toolchains//:bazel_rules_go[go/tools/builders/{}]".format(a) for a in [
+            "ar.go",
+            "asm.go",
+            "builder.go",
+            "cgo2.go",
+            "compilepkg.go",
+            "cover.go",
+            "edit.go",
+            "embedcfg.go",
+            "env.go",
+            "filter.go",
+            "filter_buildid.go",
+            "flags.go",
+            "generate_nogo_main.go",
+            "generate_test_main.go",
+            "importcfg.go",
+            "link.go",
+            "pack.go",
+            "read.go",
+            "replicate.go",
+            "stdlib.go",
+            "stdliblist.go",
+            # TODO(sluongng): select based on platform
+            # "path_windows.go",
+            "path.go",
+        ]
+    ],
+    visibility = ["PUBLIC"],
+)
