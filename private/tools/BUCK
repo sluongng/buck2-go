@@ -41,3 +41,11 @@ go_bootstrap_binary(
     ],
     visibility = ["PUBLIC"],
 )
+
+# TODO(sluongng): remove this once we have an action to test builder binary.
+# genrule(
+#     name = "test_builder",
+#     out = "test.txt",
+#     srcs = [":builder"],
+#     cmd = "$(location :builder) compilepkg > $OUT",
+# )
