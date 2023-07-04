@@ -24,3 +24,18 @@ defer_write_actions = true
 sqlite_materializer_state = true
 materializations = deferred
 file_watcher = watchman
+
+#########################
+# LOCAL CONFIG TEMPLATE #
+#########################
+# Use this config in a `$PROJECT_ROOT/.buckconfig.local` file to setup Remote Build Execution
+# with BuildBuddy. The local file is ignored by Git and will override config in this file.
+#
+# [build]
+# execution_platforms = //platforms:re_platform
+# 
+# [buck2_re_client]
+# engine_address = remote.buildbuddy.io
+# action_cache_address = remote.buildbuddy.io
+# cas_address = remote.buildbuddy.io
+# http_headers = x-buildbuddy-api-key:<your-api-key-here>
