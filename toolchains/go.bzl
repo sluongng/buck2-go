@@ -1,5 +1,6 @@
 load("@prelude//http_archive/exec_deps.bzl", "HttpArchiveExecDeps")
 load("@prelude//cxx:cxx_toolchain_types.bzl", "CxxToolchainInfo")
+load("@prelude//decls/common.bzl", "buck")
 load("@prelude//go:toolchain.bzl", "GoToolchainInfo")
 load("@prelude//os_lookup:defs.bzl", "OsLookup")
 load("@prelude//:prelude.bzl", "native")
@@ -27,9 +28,9 @@ def _go_tool_path(go_os: "string", go_arch: "string", go_tool: "string") -> "str
     return "pkg/tool/{}_{}/{}".format(go_os, go_arch, go_tool)
 
 def _system_go_toolchain_impl(ctx: "context") -> ["provider"]:
-    # TODO(sluongng): This should be exec platform, not host platform
-    go_arch = _get_go_arch()
-    go_os = _get_go_os()
+    exec_os = ctx.attrs._exec_os_type[OsLookup]
+    go_arch = "amd64" if exec_os.cpu == "x86_64" else exec_os.cpu
+    go_os = exec_os.platform
 
     go_root = ctx.attrs.go_root
 
@@ -94,14 +95,15 @@ system_go_toolchain = rule(
         "compile_wrapper": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:compile_wrapper")),
         "cover_srcs": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:cover_srcs")),
         "filter_srcs": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:filter_srcs")),
+        "_exec_os_type": buck.exec_os_type_arg(),
     },
     is_toolchain_rule = True,
 )
 
 def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
-    # TODO(sluongng): This should be exec platform, not host platform
-    go_arch = _get_go_arch()
-    go_os = _get_go_os()
+    exec_os = ctx.attrs._exec_os_type[OsLookup]
+    go_arch = "amd64" if exec_os.cpu == "x86_64" else exec_os.cpu
+    go_os = exec_os.platform
 
     expected_version = "go" + ctx.attrs.version
     sdk_metadata = None
@@ -118,7 +120,7 @@ def _remote_go_toolchain_impl(ctx) -> ["promise", ["provider"]]:
             sdk_file_metadata = file_metadata
             break
     if not sdk_file_metadata:
-        fail("Could not find suitable download for go version: {}".format(ctx.attr.version))
+        fail("Could not find suitable download ({}, {}) for go version: {}".format(go_os, go_arch, ctx.attrs.version))
 
     def handle_toolchain_archive(providers: "provider_collection") -> ["provider"]:
         go_root = providers[DefaultInfo].default_outputs[0]
@@ -205,6 +207,7 @@ remote_go_toolchain = rule(
         "cover_srcs": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:cover_srcs")),
         "filter_srcs": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:filter_srcs")),
         "_http_archive_exec_deps": attrs.default_only(attrs.dep(providers = [HttpArchiveExecDeps], default = "prelude//http_archive/tools:exec_deps")),
+        "_exec_os_type": buck.exec_os_type_arg(),
     },
     is_toolchain_rule = True,
 )
