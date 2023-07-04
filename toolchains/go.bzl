@@ -206,7 +206,7 @@ remote_go_toolchain = rule(
         "compile_wrapper": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:compile_wrapper")),
         "cover_srcs": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:cover_srcs")),
         "filter_srcs": attrs.default_only(attrs.dep(providers = [RunInfo], default = "prelude//go/tools:filter_srcs")),
-        "_http_archive_exec_deps": attrs.default_only(attrs.dep(providers = [HttpArchiveExecDeps], default = "prelude//http_archive/tools:exec_deps")),
+        "_http_archive_exec_deps": attrs.exec_dep(providers = [HttpArchiveExecDeps], default = "prelude//http_archive/tools:exec_deps"),
         "_exec_os_type": buck.exec_os_type_arg(),
     },
     is_toolchain_rule = True,
