@@ -13,16 +13,17 @@ For faster iteration, let's work from a separate repo(this one) for the time bei
 
 ## Roadmap:
 
-- [ ] Remote Go Toolchain
+- [X] Remote Go Toolchain
   + [X] Fetch toolchain
-  + [ ] Export sub targets
-
-- [ ] Build Stdlib
+  + [X] Export sub targets
+  + [ ] Rework Go toolchain (GoSDK)'s provider
 
 - [X] Build `go_bootstrap_binary` (same as `go_tool_binary` in Bazel)
-  + [ ] Implement `builder` binary
+  + [X] Implement `builder` binary
 
 - [ ] Write Go Context
+
+- [ ] Build Stdlib
 
 - [ ] Write actions using `builder` binary
   + [ ] compilepkg
@@ -48,6 +49,4 @@ For faster iteration, let's work from a separate repo(this one) for the time bei
 
 ## Open questions
 
-1. Do we copy the code from rules_go or try to manage rules_go using http_archive?
-
-2. Extends Gazelle or write something new to support Buck2? (there is no repository loading phase)
+1. Extends Gazelle or write something new to support Buck2? (there is no repository loading phase)
